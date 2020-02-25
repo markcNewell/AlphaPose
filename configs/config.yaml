@@ -33,14 +33,14 @@ DATA_PRESET:
   - 48
 MODEL:
   TYPE: 'FastPose_DUC'
-  BACKBONE: 'shuffle'
+  BACKBONE: 'se-resnet'
   PRETRAINED: ''
   TRY_LOAD: ''
   NUM_DECONV_FILTERS:
   - 256
   - 256
   - 256
-  NUM_LAYERS: 50
+  NUM_LAYERS: 152
   FINAL_CONV_KERNEL: 1
   STAGE1:
     NUM_CONV: 4
@@ -50,8 +50,8 @@ MODEL:
     NUM_CONV: 1
 DETECTOR:
   NAME: 'yolo'
-  CONFIG: 'detector/yolo/cfg/yolov3-spp.cfg'
-  WEIGHTS: 'detector/yolo/data/yolov3-spp.weights'
+  CONFIG: 'alphapo/detector/yolo/cfg/yolov3-spp.cfg'
+  WEIGHTS: 'alphapo/detector/yolo/data/yolov3-spp.weights'
   NMS_THRES: 0.6
   CONFIDENCE: 0.05
 TRAIN:

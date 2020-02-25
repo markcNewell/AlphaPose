@@ -14,16 +14,15 @@ from alphapose.utils.presets import SimpleTransform
 
 
 class DetectionLoader():
-    def __init__(self, input_source, detector, cfg, opt, mode='image', batchSize=1, queueSize=128):
+    def __init__(self, input_source, image_list, detector, cfg, opt, mode='image', batchSize=1, queueSize=128):
         self.cfg = cfg
         self.opt = opt
         self.mode = mode
         self.device = opt.device
 
         if mode == 'image':
-            self.img_dir = opt.inputpath
-            self.imglist = [os.path.join(self.img_dir, im_name.rstrip('\n').rstrip('\r')) for im_name in input_source]
-            self.datalen = len(input_source)
+            self.imglist = image_list
+            self.datalen = len(self.imglist)
         elif mode == 'video':
             stream = cv2.VideoCapture(input_source)
             assert stream.isOpened(), 'Cannot capture source'
@@ -125,6 +124,9 @@ class DetectionLoader():
         return queue.get()
 
     def image_preprocess(self):
+        """
+        Function changed, adapted to take preopened files instead of filenames
+        """
         for i in range(self.num_batches):
             imgs = []
             orig_imgs = []
@@ -134,21 +136,20 @@ class DetectionLoader():
                 if self.stopped:
                     self.wait_and_put(self.image_queue, (None, None, None, None))
                     return
-                im_name_k = self.imglist[k]
+                orig_img_k = self.imglist[k]
 
                 # expected image shape like (1,3,h,w) or (3,h,w)
-                img_k = self.detector.image_preprocess(im_name_k)
+                img_k = self.detector.image_preprocess(orig_img_k)
                 if isinstance(img_k, np.ndarray):
                     img_k = torch.from_numpy(img_k)
                 # add one dimension at the front for batch if image shape (3,h,w)
                 if img_k.dim() == 3:
                     img_k = img_k.unsqueeze(0)
-                orig_img_k = scipy.misc.imread(im_name_k, mode='RGB')
                 im_dim_list_k = orig_img_k.shape[1], orig_img_k.shape[0]
 
                 imgs.append(img_k)
                 orig_imgs.append(orig_img_k)
-                im_names.append(im_name_k)
+                im_names.append("frame001.png")
                 im_dim_list.append(im_dim_list_k)
 
             with torch.no_grad():

@@ -108,8 +108,10 @@ class DataWriter():
                 preds_img = torch.cat(pose_coords)
                 preds_scores = torch.cat(pose_scores)
                 result = pose_nms(boxes, scores, ids, preds_img, preds_scores, self.opt.min_box_area)
+                ratio = orig_img.shape[1]/orig_img.shape[0]
                 result = {
                     'imgname': im_name,
+                    'ratio': ratio,
                     'result': result
                 }
                 if self.opt.pose_track:
