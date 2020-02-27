@@ -48,9 +48,6 @@ class AlphaPose:
             self.pose_model.to(args.device)
         self.pose_model.eval()
 
-        # Init data writer
-        queueSize = args.qsize
-        self.writer = DataWriter(self.cfg, args, save_video=False, queueSize=queueSize).start()
         self.args = args
         
 
@@ -78,13 +75,6 @@ class AlphaPose:
             raise NotImplementedError
 
 
-    def print_finish_info(self, args):
-        print('===========================> Finish Model Running.')
-        if (args.save_img or args.save_video) and not args.vis_fast:
-            print('===========================> Rendering remaining images in the queue...')
-            print('===========================> If this step takes too long, you can enable the --vis_fast flag to use fast rendering (real-time).')
-
-
     def loop(self):
         n = 0
         while True:
@@ -92,10 +82,14 @@ class AlphaPose:
             n += 1
 
 
-    def predict(self, image):
+    def predict(self, image, img_name):
         args = self.args
         # Load detection loader
-        det_loader = DetectionLoader(self.input_source, [image], get_detector(args), self.cfg, args, batchSize=args.detbatch, mode=self.mode).start()
+        det_loader = DetectionLoader(self.input_source, [img_name], [image], get_detector(args), self.cfg, args, batchSize=args.detbatch, mode=self.mode).start()
+
+        # Init data writer
+        queueSize = args.qsize
+        self.writer = DataWriter(self.cfg, args, save_video=False, queueSize=queueSize).start()
 
         runtime_profile = {
             'dt': [],
@@ -159,7 +153,6 @@ class AlphaPose:
                         'det time: {dt:.4f} | pose time: {pt:.4f} | post processing: {pn:.4f}'.format(
                             dt=np.mean(runtime_profile['dt']), pt=np.mean(runtime_profile['pt']), pn=np.mean(runtime_profile['pn']))
                     )
-            self.print_finish_info(args)
             while(self.writer.running()):
                 time.sleep(1)
                 print('===========================> Rendering remaining ' + str(self.writer.count()) + ' images in the queue...')

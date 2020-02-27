@@ -14,11 +14,12 @@ from alphapose.utils.presets import SimpleTransform
 
 
 class DetectionLoader():
-    def __init__(self, input_source, image_list, detector, cfg, opt, mode='image', batchSize=1, queueSize=128):
+    def __init__(self, input_source, image_names, image_list, detector, cfg, opt, mode='image', batchSize=1, queueSize=128):
         self.cfg = cfg
         self.opt = opt
         self.mode = mode
         self.device = opt.device
+        self.image_names = image_names
 
         if mode == 'image':
             self.imglist = image_list
@@ -137,6 +138,7 @@ class DetectionLoader():
                     self.wait_and_put(self.image_queue, (None, None, None, None))
                     return
                 orig_img_k = self.imglist[k]
+                img_name = self.image_names[k]
 
                 # expected image shape like (1,3,h,w) or (3,h,w)
                 img_k = self.detector.image_preprocess(orig_img_k)
@@ -149,7 +151,7 @@ class DetectionLoader():
 
                 imgs.append(img_k)
                 orig_imgs.append(orig_img_k)
-                im_names.append("frame001.png")
+                im_names.append(img_name)
                 im_dim_list.append(im_dim_list_k)
 
             with torch.no_grad():
